@@ -20,5 +20,6 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app); // 👈 Exportar Functions
+export const firebaseProjectId = firebaseConfig.projectId;
 
 export default app;
