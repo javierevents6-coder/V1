@@ -84,7 +84,7 @@ const StoreSettings: React.FC = () => {
                 >Salvar</button>
                 {saved === 'ok' && <span className="text-green-600 text-sm self-center">Salvo</span>}
               </div>
-              <p className="text-xs text-gray-500 mt-2">Este token é salvo apenas no seu navegador para uso administrativo. Em produção, configure as variáveis no provedor (Netlify).</p>
+              <p className="text-xs text-gray-500 mt-2">Este token é salvo apenas no seu navegador para uso administrativo. Em produção, defina MP_ACCESS_TOKEN nas variáveis do Firebase Functions (firebase functions:config:set mp.access_token=... ou variável de ambiente).</p>
             </div>
           </div>
         </div>

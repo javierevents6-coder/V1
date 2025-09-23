@@ -55,12 +55,12 @@ esto es una nota
    - Get your Public Key (optional, for SDK)
 
 2. **Configure Environment Variables**
-   
-   For Netlify deployment, add these environment variables in your Netlify dashboard:
+
+   For Firebase Functions, set secrets via Firebase config or environment variables:
+   ```bash
+   firebase functions:config:set mp.access_token=APP_USR-your-access-token-here
    ```
-   MP_ACCESS_TOKEN=APP_USR-your-access-token-here
-   VITE_MP_PUBLIC_KEY=your-public-key-here
-   ```
+   Or set MP_ACCESS_TOKEN in your Functions environment.
 
 3. **Test Integration**
    - Use sandbox credentials for testing
@@ -77,15 +77,13 @@ Configure your Firebase project and update the config in `src/utils/firebaseClie
 
 ### 4. Deployment
 
-#### Netlify (Recommended)
+Deploy to Firebase Hosting and Functions:
 
-1. Connect your repository to Netlify
-2. Set build command: `npm run build`
-3. Set publish directory: `dist`
-4. Add environment variables in Netlify dashboard
-5. Deploy!
-
-The `netlify.toml` file is already configured with the necessary settings.
+1. Install Firebase CLI and login
+2. Run `firebase init` (select Hosting and Functions if not initialized)
+3. Set Functions config for Mercado Pago (see above)
+4. Build: `npm run build`
+5. Deploy: `firebase deploy`
 
 ## Usage
 
