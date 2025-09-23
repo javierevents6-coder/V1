@@ -118,8 +118,10 @@ export class MercadoPagoService {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erro ao criar preferência de pagamento');
+        // Use clone() to avoid "body stream already read" errors in some runtimes
+        let errorBody: any = null;
+        try { errorBody = await response.clone().json(); } catch (e) { try { errorBody = await response.text(); } catch (_) { errorBody = null; } }
+        throw new Error((errorBody && (errorBody.message || errorBody.error)) || 'Erro ao criar preferência de pagamento');
       }
 
       return await response.json();
