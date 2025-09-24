@@ -13,7 +13,7 @@ import LoginModal from '../auth/LoginModal';
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState<boolean>(Boolean(typeof window !== 'undefined' && localStorage.getItem('site_admin_mode')));
+  const [isAdmin, setIsAdmin] = useState<boolean>(Boolean(typeof window !== 'undefined' && sessionStorage.getItem('site_admin_mode')));
   const { user, isAdmin: userIsAdmin, loading: authLoading, refreshClaims } = useAuth();
   const [showAdminEmailLogin, setShowAdminEmailLogin] = useState(false);
   const location = useLocation();
@@ -22,20 +22,18 @@ const Header = () => {
 
   useEffect(() => {
     const handler = (e: Event | any) => {
-      const val = e?.detail ?? (localStorage.getItem('site_admin_mode') ? true : false);
+      const val = e?.detail ?? (sessionStorage.getItem('site_admin_mode') ? true : false);
       setIsAdmin(Boolean(val));
     };
     window.addEventListener('siteAdminModeChanged', handler as EventListener);
-    window.addEventListener('storage', handler as EventListener);
     return () => {
       window.removeEventListener('siteAdminModeChanged', handler as EventListener);
-      window.removeEventListener('storage', handler as EventListener);
     };
   }, []);
 
   const notifyAdminChange = async (val: boolean) => {
     try {
-      if (val) localStorage.setItem('site_admin_mode', '1'); else localStorage.removeItem('site_admin_mode');
+      if (val) sessionStorage.setItem('site_admin_mode', '1'); else sessionStorage.removeItem('site_admin_mode');
     } catch (_) {}
     if (!val) {
       try {
