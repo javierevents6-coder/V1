@@ -16,6 +16,12 @@ exports.makeAdmin = functions.https.onCall(async (data, context) => {
   }
 });
 
+// Mercado Pago config check
+exports.mpCheckConfig = functions.https.onCall(async (_data, _context) => {
+  const accessToken = process.env.MP_ACCESS_TOKEN || (functions.config().mp && functions.config().mp.access_token);
+  return { configured: Boolean(accessToken) };
+});
+
 // Mercado Pago - create preference via Firebase Functions (no Netlify)
 exports.mpCreatePreference = functions.https.onCall(async (data, context) => {
   try {
