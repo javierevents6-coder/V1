@@ -55,7 +55,7 @@ const Header = () => {
         if (userIsAdmin) {
           try {
             notifyAdminChange(true);
-            navigate('/admin-store');
+            navigate('/admin');
           } catch (e) {
             console.error('Failed to enable admin mode', e);
           }
@@ -66,7 +66,7 @@ const Header = () => {
           const token = await auth.currentUser?.getIdTokenResult();
           if (token?.claims?.admin) {
             notifyAdminChange(true);
-            navigate('/admin-store');
+            navigate('/admin');
           } else {
             // Prompt for email/password login to check admin claims
             setShowAdminEmailLogin(true);
@@ -77,7 +77,8 @@ const Header = () => {
         setShowAdminEmailLogin(true);
       }
     } else {
-      notifyAdminChange(false);
+      // If already in admin mode, just navigate to admin panel
+      navigate('/admin');
     }
   };
 
@@ -88,7 +89,7 @@ const Header = () => {
       const claims = token?.claims || {};
       if (claims.admin) {
         notifyAdminChange(true);
-        navigate('/admin-store');
+        navigate('/admin');
         return true;
       } else {
         return false;
@@ -183,8 +184,8 @@ const Header = () => {
           <div className="hidden md:flex items-center">
             <ul className="flex items-center space-x-8">
               <li>
-                <button onClick={toggleAdminFromHeader} aria-label={isAdmin ? 'Sair do modo admin' : 'Modo administrador'} className="p-2 text-white hover:text-secondary transition-colors">
-                  {isAdmin ? <EyeOff size={18} /> : <Eye size={18} />}
+                <button onClick={toggleAdminFromHeader} aria-label={'Ir ao painel de administração'} className="p-2 text-white hover:text-secondary transition-colors">
+                  <Eye size={18} />
                 </button>
               </li>
               {navLinks.slice(0, Math.ceil(navLinks.length / 2)).map((link) => (
