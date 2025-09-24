@@ -24,12 +24,15 @@ interface MercadoPagoPreference {
   notification_url?: string;
 }
 
+import { httpsCallable } from 'firebase/functions';
+import { functions, firebaseProjectId } from './firebaseClient';
+
 export class MercadoPagoService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = import.meta.env.PROD 
-      ? window.location.origin 
+    this.baseUrl = import.meta.env.PROD
+      ? window.location.origin
       : 'http://localhost:5173';
   }
 
@@ -101,28 +104,13 @@ export class MercadoPagoService {
         },
         auto_return: 'approved',
         external_reference: `booking_${Date.now()}`,
-        notification_url: `${this.baseUrl}/api/mercadopago/webhook`
+        notification_url: `https://us-central1-${firebaseProjectId}.cloudfunctions.net/mpWebhook`
       };
 
-      const token = (typeof window !== 'undefined') ? localStorage.getItem('mp_access_token') : '';
-      const response = await fetch('/api/mercadopago/create-preference', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          preference,
-          bookingData,
-          accessToken: token || undefined,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erro ao criar preferência de pagamento');
-      }
-
-      return await response.json();
+      // Call Firebase Callable Function (mpCreatePreference)
+      const call = httpsCallable(functions as any, 'mpCreatePreference');
+      const resp: any = await call({ preference, bookingData });
+      return resp.data as { id: string; init_point: string };
     } catch (error) {
       console.error('Erro no Mercado Pago:', error);
       throw error;

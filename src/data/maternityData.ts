@@ -15,15 +15,15 @@ export const maternityPackages: MaternityPackageType[] = [
   {
     id: 'maternity-gold',
     title: 'GOLD',
-    price: 'R$ 200',
-    duration: '30 minutos',
-    description: 'Sessão rápida em estúdio para registrar com carinho este momento único.',
+    price: 'R$200',
+    duration: '30 min ensaio',
+    description: '',
     features: [
-      'Figurinos: 1',
-      'Fotos digitais: 10',
-      'Participantes: Apenas 2 pessoas + filhos',
-      'Local: Apenas no estúdio',
-      'Maquiagem adicional: R$ 80'
+      '1 figurino',
+      '10 fotos digitais',
+      '30 min ensaio',
+      'Apenas 2 pessoas + filhos.',
+      'Fotos apenas no estúdio.'
     ],
     image: 'https://images.pexels.com/photos/4253831/pexels-photo-4253831.jpeg?auto=compress&cs=tinysrgb&w=1600',
     looks: 1
@@ -31,16 +31,16 @@ export const maternityPackages: MaternityPackageType[] = [
   {
     id: 'maternity-platinum',
     title: 'PLATINUM',
-    price: 'R$ 400',
-    duration: '1 hora 30 minutos',
-    description: 'Sessão completa com maior variedade de looks, podendo ser externa ou em estúdio.',
+    price: 'R$400',
+    duration: '1:30 min ensaio',
+    description: '',
     features: [
-      'Figurinos: 3',
-      'Fotos digitais: 30',
-      'Participantes: Família inteira pode participar',
-      'Maquiagem: Inclusa',
-      'Local: Externas ou estúdio',
-      'Maquiagem adicional: R$ 80'
+      '3 figurinos',
+      '30 fotos digitais',
+      '1:30 min ensaio',
+      'Pode participar a família toda.',
+      'Maquiagem incluso.',
+      'Fotos externas ou no estúdio.'
     ],
     image: 'https://images.pexels.com/photos/3951843/pexels-photo-3951843.jpeg?auto=compress&cs=tinysrgb&w=1600',
     looks: 3
@@ -48,15 +48,15 @@ export const maternityPackages: MaternityPackageType[] = [
   {
     id: 'maternity-diamond',
     title: 'DIAMOND',
-    price: 'R$ 250',
-    duration: 'Até 45 minutos',
-    description: 'Sessão dinâmica com foco em fotos externas ou em estúdio, incluindo a família.',
+    price: 'R$250',
+    duration: 'Até 45 min ensaio',
+    description: '',
     features: [
-      'Figurinos: 2',
-      'Fotos digitais: 20',
-      'Participantes: Família inteira nas fotos externas',
-      'Local: Externas ou estúdio',
-      'Maquiagem adicional: R$ 80'
+      '2 figurinos',
+      '20 fotos digitais',
+      'Até 45 min ensaio',
+      'Pode participar a família toda nas fotos externas.',
+      'Fotos externas ou no estúdio.'
     ],
     image: 'https://images.pexels.com/photos/3992658/pexels-photo-3992658.jpeg?auto=compress&cs=tinysrgb&w=1600',
     looks: 2

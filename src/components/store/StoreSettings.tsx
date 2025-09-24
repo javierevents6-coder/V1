@@ -1,32 +1,33 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useFeatureFlags } from '../../contexts/FeatureFlagsContext';
 
-const LS_MP_TOKEN_KEY = 'mp_access_token';
+// Mercado Pago config is validated via Firebase Functions, not stored locally.
 
 const StoreSettings: React.FC = () => {
   const { flags, setPageEnabled, setPaymentEnabled } = useFeatureFlags();
   const [mpEnabledLocal, setMpEnabledLocal] = useState<boolean>(Boolean(flags.payments?.mpEnabled ?? true));
-  const [accessToken, setAccessToken] = useState<string>('');
-  const [saved, setSaved] = useState<'none' | 'ok'>('none');
-
-  useEffect(() => {
-    const savedToken = typeof window !== 'undefined' ? localStorage.getItem(LS_MP_TOKEN_KEY) : '';
-    setAccessToken(savedToken || '');
-  }, []);
+  const [mpConfigured, setMpConfigured] = useState<'unknown' | 'ok' | 'missing'>('unknown');
 
   useEffect(() => {
     setMpEnabledLocal(Boolean(flags.payments?.mpEnabled ?? true));
   }, [flags.payments?.mpEnabled]);
 
-  const pageEntries = useMemo(() => Object.entries(flags.pages), [flags.pages]);
+  useEffect(() => {
+    const verify = async () => {
+      try {
+        const { httpsCallable } = await import('firebase/functions');
+        const { functions } = await import('../../utils/firebaseClient');
+        const call: any = httpsCallable(functions as any, 'mpCheckConfig');
+        const resp: any = await call({});
+        setMpConfigured(resp?.data?.configured ? 'ok' : 'missing');
+      } catch (_) {
+        setMpConfigured('missing');
+      }
+    };
+    verify();
+  }, []);
 
-  const handleSaveToken = () => {
-    try {
-      localStorage.setItem(LS_MP_TOKEN_KEY, accessToken.trim());
-      setSaved('ok');
-      setTimeout(() => setSaved('none'), 1500);
-    } catch (_) {}
-  };
+  const pageEntries = useMemo(() => Object.entries(flags.pages), [flags.pages]);
 
   return (
     <div className="space-y-8">
@@ -69,22 +70,14 @@ const StoreSettings: React.FC = () => {
             </label>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Access Token (MP_ACCESS_TOKEN)</label>
-              <input
-                type="password"
-                value={accessToken}
-                onChange={(e) => setAccessToken(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="APP_USR-..."
-              />
-              <div className="flex gap-2 mt-3">
-                <button
-                  onClick={handleSaveToken}
-                  className="px-4 py-2 rounded-none border-2 border-black text-black hover:bg-black hover:text-white"
-                >Salvar</button>
-                {saved === 'ok' && <span className="text-green-600 text-sm self-center">Salvo</span>}
+              <label className="block text-sm font-medium text-gray-700 mb-2">Mercado Pago</label>
+              <div className="flex items-center justify-between border border-gray-200 rounded px-3 py-2">
+                <span className="text-sm">Configuração via Firebase Functions</span>
+                {mpConfigured === 'unknown' && <span className="text-gray-500 text-sm">Verificando...</span>}
+                {mpConfigured === 'ok' && <span className="text-green-600 text-sm">Configuração detectada</span>}
+                {mpConfigured === 'missing' && <span className="text-red-600 text-sm">Token ausente nas variáveis do Firebase</span>}
               </div>
-              <p className="text-xs text-gray-500 mt-2">Este token é salvo apenas no seu navegador para uso administrativo. Em produção, configure as variáveis no provedor (Netlify).</p>
+              <p className="text-xs text-gray-500 mt-2">O Access Token é lido no backend (Firebase Functions) por variável de ambiente/config (MP_ACCESS_TOKEN). Ele não é configurado pela interface.</p>
             </div>
           </div>
         </div>

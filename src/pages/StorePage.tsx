@@ -151,7 +151,7 @@ const StorePage = () => {
     try {
       if (editingProduct) {
         // Update existing product
-        await updateDoc(doc(db, 'products', editingProduct.id), {
+        const data: any = {
           name: editingProduct.name,
           description: editingProduct.description,
           price: editingProduct.price,
@@ -159,7 +159,10 @@ const StorePage = () => {
           image_url: editingProduct.image_url,
           custom_text: editingProduct.custom_text,
           updated_at: new Date().toISOString()
-        });
+        };
+        Object.keys(data).forEach((key) => (data as any)[key] === undefined && delete (data as any)[key]);
+        if ('category' in data) data.category = data.category ?? null;
+        await updateDoc(doc(db, 'products', editingProduct.id), data);
         setEditingProduct(null);
       } else {
         // Create new product

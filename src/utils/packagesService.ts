@@ -75,7 +75,12 @@ export const createPackage = async (pkg: Omit<DBPackage, 'id' | 'created_at'>) =
 
 export const updatePackage = async (id: string, updates: Partial<DBPackage>) => {
   try {
-    await updateDoc(doc(db, 'packages', id), updates);
+    const data: any = { ...updates };
+    Object.keys(data).forEach((key) => data[key] === undefined && delete data[key]);
+    if (Object.prototype.hasOwnProperty.call(data, 'category')) {
+      data.category = data.category ?? null;
+    }
+    await updateDoc(doc(db, 'packages', id), data);
   } catch (e) {
     console.error('updatePackage (firebase) failed', e);
     throw e;

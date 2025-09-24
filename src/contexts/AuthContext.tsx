@@ -95,8 +95,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUserProfile(userDoc.data() as UserProfile);
           }
         } catch (error: any) {
-          // Firestore network errors can happen; log and continue
+          // Firestore network errors or permission issues can happen; log and continue with minimal profile
           console.error('Error fetching user profile (Firestore may be unreachable):', error?.message || error);
+
+          // If permissions prevent reading user profile, fall back to a minimal profile from the auth user so UI keeps working.
+          if ((error?.code === 'permission-denied') || String(error?.message || '').toLowerCase().includes('missing or insufficient permissions')) {
+            console.warn('Firestore permission denied when reading user profile. Ensure Firestore security rules allow reads on the users collection or adjust the app to store a public profile.');
+            const fallback: UserProfile = {
+              name: (user.displayName as string) || '',
+              cpf: '',
+              rg: '',
+              phone: user.phoneNumber || '',
+              address: '',
+              email: user.email || '',
+              createdAt: user.metadata?.creationTime || new Date().toISOString()
+            };
+            setUserProfile(fallback);
+          }
         }
       } else {
         setUserProfile(null);

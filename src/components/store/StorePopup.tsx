@@ -20,6 +20,7 @@ const StorePopup: React.FC<StorePopupProps> = ({ isOpen, onClose, onAddProducts 
   const [selectedProducts, setSelectedProducts] = useState<{[key: string]: number}>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hiddenCategories = new Set(['vestidos', 'vestido']);
 
   useEffect(() => {
     if (isOpen) {
@@ -35,8 +36,18 @@ const StorePopup: React.FC<StorePopupProps> = ({ isOpen, onClose, onAddProducts 
       let q: any = col;
       try { q = query(col, orderBy('created_at', 'desc')); } catch (_) { q = col; }
       const snap = await getDocs(q);
-      const data = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as StoreProduct[];
-      setProducts(data || []);
+      const raw = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as StoreProduct[];
+      const seen = new Set<string>();
+      const unique: StoreProduct[] = [];
+      for (const p of raw) {
+        const key = `${String(p.name||'').trim().toLowerCase()}|${Number(p.price)||0}|${String(p.category||'').trim().toLowerCase()}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          unique.push(p);
+        }
+      }
+      const filtered = unique.filter(p => (p as any).active !== false && !hiddenCategories.has(String(p.category||'').toLowerCase()));
+      setProducts(filtered);
     } catch (error) {
       console.error('Error fetching products:', error);
       setError('No se pudieron cargar los productos. Puedes continuar sin productos adicionales.');
