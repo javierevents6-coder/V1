@@ -4,6 +4,7 @@ import { CartProvider } from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { FeatureFlagsProvider } from './contexts/FeatureFlagsContext';
 import GuardedRoute from './components/ui/GuardedRoute';
+import AdminGuard from './components/ui/AdminGuard';
 import Layout from './components/layout/Layout';
 import ScrollToTop from './components/ui/ScrollToTop';
 const HomePage = lazy(() => import('./pages/HomePage'));
