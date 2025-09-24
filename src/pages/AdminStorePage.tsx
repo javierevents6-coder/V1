@@ -10,8 +10,12 @@ import { collection, getDocs, deleteDoc, doc, updateDoc, orderBy, query } from '
 import { Trash2 } from 'lucide-react';
 
 const AdminStorePage: React.FC = () => {
-  const [adminView, setAdminView] = useState<'dashboard' | 'products' | 'orders' | 'contracts' | 'packages' | 'settings'>('dashboard');
-  const [adminFullscreen, setAdminFullscreen] = useState(false);
+  const [adminView, setAdminView] = useState<'dashboard' | 'products' | 'orders' | 'contracts' | 'packages' | 'settings'>(() => {
+    try { return (localStorage.getItem('admin_view') as any) || 'dashboard'; } catch { return 'dashboard'; }
+  });
+  const [adminFullscreen, setAdminFullscreen] = useState<boolean>(() => {
+    try { return localStorage.getItem('admin_fullscreen') === '1'; } catch { return false; }
+  });
 
   // products state copied from StorePage
   const [products, setProducts] = useState<any[]>([]);
@@ -41,6 +45,14 @@ const AdminStorePage: React.FC = () => {
   };
 
   useEffect(() => { fetchProducts(); }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem('admin_view', adminView); } catch {}
+  }, [adminView]);
+
+  useEffect(() => {
+    try { adminFullscreen ? localStorage.setItem('admin_fullscreen', '1') : localStorage.removeItem('admin_fullscreen'); } catch {}
+  }, [adminFullscreen]);
 
   const handleDeactivate = async (productId: string, activate: boolean) => {
     try {
