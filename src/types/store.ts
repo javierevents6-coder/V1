@@ -7,6 +7,15 @@ export interface Product {
   image_url: string;
   created_at: string;
   updated_at: string;
+  active?: boolean;
+  allow_name?: boolean;
+  allow_custom_image?: boolean;
+  variants?: { name: string; priceDelta?: number; price?: number }[];
+  tieneVariantes?: boolean;
+  variantes?: { nombre: string; precio: number }[];
+  permiteTexto?: boolean;
+  permiteFoto?: boolean;
+  permiteAudio?: boolean;
 }
 
 export interface Package {
