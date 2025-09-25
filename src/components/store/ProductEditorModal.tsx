@@ -26,7 +26,13 @@ interface Props {
 }
 
 const ProductEditorModal: React.FC<Props> = ({ open, onClose, product, onSaved }) => {
-  const [form, setForm] = useState<ProductInput>({
+  const [form, setForm] = useState<ProductInput & {
+    tieneVariantes?: boolean;
+    variantes?: { nombre: string; precio: number }[];
+    permiteTexto?: boolean;
+    permiteFoto?: boolean;
+    permiteAudio?: boolean;
+  }>({
     name: '',
     description: '',
     price: 0,
@@ -36,7 +42,12 @@ const ProductEditorModal: React.FC<Props> = ({ open, onClose, product, onSaved }
     active: true,
     allow_name: true,
     allow_custom_image: true,
-    variants: []
+    variants: [],
+    tieneVariantes: false,
+    variantes: [],
+    permiteTexto: true,
+    permiteFoto: true,
+    permiteAudio: false
   });
   const [tagsText, setTagsText] = useState('');
   const [saving, setSaving] = useState(false);
@@ -53,6 +64,10 @@ const ProductEditorModal: React.FC<Props> = ({ open, onClose, product, onSaved }
 
   useEffect(() => {
     if (product) {
+      const basePrice = Number(product.price) || 0;
+      const variantes = (product as any).variantes as any[] || [];
+      const variants = (product.variants || []).map(v => ({ nombre: v.name, precio: v.price != null ? Number(v.price) : basePrice + Number(v.priceDelta || 0) }));
+      const mergedVariantes = variantes.length ? variantes : variants;
       setForm({
         id: product.id,
         name: product.name || '',
@@ -64,7 +79,12 @@ const ProductEditorModal: React.FC<Props> = ({ open, onClose, product, onSaved }
         active: product.active !== false,
         allow_name: product.allow_name !== false,
         allow_custom_image: product.allow_custom_image !== false,
-        variants: product.variants || []
+        variants: product.variants || [],
+        tieneVariantes: (product as any).tieneVariantes === true || mergedVariantes.length > 0,
+        variantes: mergedVariantes,
+        permiteTexto: (product as any).permiteTexto != null ? !!(product as any).permiteTexto : (product.allow_name !== false),
+        permiteFoto: (product as any).permiteFoto != null ? !!(product as any).permiteFoto : (product.allow_custom_image !== false),
+        permiteAudio: !!(product as any).permiteAudio
       });
       setTagsText((product.tags || []).join(', '));
     } else {
@@ -78,7 +98,12 @@ const ProductEditorModal: React.FC<Props> = ({ open, onClose, product, onSaved }
         active: true,
         allow_name: true,
         allow_custom_image: true,
-        variants: []
+        variants: [],
+        tieneVariantes: false,
+        variantes: [],
+        permiteTexto: true,
+        permiteFoto: true,
+        permiteAudio: false
       });
       setTagsText('');
     }
@@ -177,17 +202,25 @@ const ProductEditorModal: React.FC<Props> = ({ open, onClose, product, onSaved }
   const save = async () => {
     try {
       setSaving(true);
+      const basePrice = Number(form.price) || 0;
+      const variantes = (form.variantes || []).map(v => ({ nombre: String(v.nombre||''), precio: Number(v.precio||0) }));
+      const variants = variantes.map(v => ({ name: v.nombre, price: v.precio, priceDelta: Number(v.precio) - basePrice }));
       const payload: any = {
         name: form.name,
         description: form.description,
-        price: Number(form.price) || 0,
+        price: basePrice,
         category: form.category,
         image_url: form.image_url,
         tags: (tagsText || '').split(',').map(t => t.trim()).filter(Boolean),
         active: !!form.active,
-        allow_name: !!form.allow_name,
-        allow_custom_image: !!form.allow_custom_image,
-        variants: form.variants || [],
+        allow_name: form.permiteTexto != null ? !!form.permiteTexto : !!form.allow_name,
+        allow_custom_image: form.permiteFoto != null ? !!form.permiteFoto : !!form.allow_custom_image,
+        variants,
+        tieneVariantes: !!form.tieneVariantes || variantes.length > 0,
+        variantes,
+        permiteTexto: form.permiteTexto != null ? !!form.permiteTexto : !!form.allow_name,
+        permiteFoto: form.permiteFoto != null ? !!form.permiteFoto : !!form.allow_custom_image,
+        permiteAudio: !!form.permiteAudio,
         updated_at: new Date().toISOString(),
       };
       if (form.id) {
@@ -297,25 +330,28 @@ const ProductEditorModal: React.FC<Props> = ({ open, onClose, product, onSaved }
             <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} className="w-full px-3 py-2 border rounded-none" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.allow_name} onChange={e => setForm({ ...form, allow_name: e.target.checked })} /> Permite personalización con nombre</label>
-            <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.allow_custom_image} onChange={e => setForm({ ...form, allow_custom_image: e.target.checked })} /> Permite subir imagen personalizada</label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <label className="flex items-center gap-2 md:col-span-1"><input type="checkbox" checked={!!form.permiteTexto} onChange={e => setForm({ ...form, permiteTexto: e.target.checked })} /> Permite texto personalizado</label>
+            <label className="flex items-center gap-2 md:col-span-1"><input type="checkbox" checked={!!form.permiteFoto} onChange={e => setForm({ ...form, permiteFoto: e.target.checked })} /> Permite foto personalizada</label>
+            <label className="flex items-center gap-2 md:col-span-1"><input type="checkbox" checked={!!form.permiteAudio} onChange={e => setForm({ ...form, permiteAudio: e.target.checked })} /> Permite audio personalizado</label>
           </div>
 
-          <div>
+          <div className="mt-2 border-t pt-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">Variantes del Producto</span>
-              <button className="flex items-center gap-1 text-sm border-2 border-black text-black px-2 py-1 rounded-none hover:bg-black hover:text-white" onClick={() => setForm(f => ({ ...f, variants: [...(f.variants || []), { name: '', priceDelta: 0 }] }))}><Plus size={14} /> Agregar Variante</button>
+              <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.tieneVariantes} onChange={e => setForm({ ...form, tieneVariantes: e.target.checked })} /> Tiene variantes</label>
+              <button disabled={!form.tieneVariantes} className={`flex items-center gap-1 text-sm border-2 px-2 py-1 rounded-none ${form.tieneVariantes? 'border-black text-black hover:bg-black hover:text-white' : 'border-gray-300 text-gray-400'}`} onClick={() => setForm(f => ({ ...f, variantes: [...(f.variantes || []), { nombre: '', precio: Number(f.price||0) }] }))}><Plus size={14} /> Agregar Variante</button>
             </div>
-            <div className="space-y-2">
-              {(form.variants || []).map((v, i) => (
-                <div key={i} className="grid grid-cols-1 md:grid-cols-5 gap-2 items-center">
-                  <input placeholder="Nombre" value={v.name} onChange={e => setForm(f => ({ ...f, variants: f.variants!.map((vv, idx) => idx === i ? { ...vv, name: e.target.value } : vv) }))} className="md:col-span-3 px-3 py-2 border rounded-none" />
-                  <input type="number" step="0.01" placeholder="Δ Precio" value={v.priceDelta} onChange={e => setForm(f => ({ ...f, variants: f.variants!.map((vv, idx) => idx === i ? { ...vv, priceDelta: Number(e.target.value) } : vv) }))} className="px-3 py-2 border rounded-none" />
-                  <button className="justify-self-end border-2 border-black text-black px-2 py-2 rounded-none hover:bg-black hover:text-white" onClick={() => setForm(f => ({ ...f, variants: (f.variants || []).filter((_, idx) => idx !== i) }))}><Trash2 size={14} /></button>
-                </div>
-              ))}
-            </div>
+            {form.tieneVariantes && (
+              <div className="space-y-2">
+                {(form.variantes || []).map((v, i) => (
+                  <div key={i} className="grid grid-cols-1 md:grid-cols-5 gap-2 items-center">
+                    <input placeholder="Nombre" value={v.nombre} onChange={e => setForm(f => ({ ...f, variantes: (f.variantes || []).map((vv, idx) => idx === i ? { ...vv, nombre: e.target.value } : vv) }))} className="md:col-span-3 px-3 py-2 border rounded-none" />
+                    <input type="number" step="0.01" placeholder="Precio" value={v.precio} onChange={e => setForm(f => ({ ...f, variantes: (f.variantes || []).map((vv, idx) => idx === i ? { ...vv, precio: Number(e.target.value) } : vv) }))} className="px-3 py-2 border rounded-none" />
+                    <button className="justify-self-end border-2 border-black text-black px-2 py-2 rounded-none hover:bg-black hover:text-white" onClick={() => setForm(f => ({ ...f, variantes: (f.variantes || []).filter((_, idx) => idx !== i) }))}><Trash2 size={14} /></button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

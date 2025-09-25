@@ -10,6 +10,8 @@ import OrdersManagement from '../components/store/OrdersManagement';
 import PhotoPackagesManagement from '../components/store/PhotoPackagesManagement';
 import ContractsManagement from '../components/store/ContractsManagement';
 import { formatPrice } from '../utils/format';
+import AddToCartModal from '../components/store/AddToCartModal';
+import ImageLightbox from '../components/store/ImageLightbox';
 
 interface StoreProduct extends Product {
   custom_text?: string;
@@ -24,7 +26,11 @@ const StorePage = () => {
   const [adminFullscreen, setAdminFullscreen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<StoreProduct | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
-  const { addToCart: addToMainCart } = useCart();
+  const { addToCart: addToMainCart, setIsCartOpen } = useCart();
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<StoreProduct | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -412,27 +418,41 @@ const StorePage = () => {
                     <img
                       src={product.image_url}
                       alt={product.name}
-                      className="w-full h-48 object-cover"
+                      className="w-full h-48 object-cover cursor-zoom-in"
+                      onClick={() => { setLightboxSrc(product.image_url); setLightboxOpen(true); }}
                     />
                     {product.custom_text && (
                       <div className="absolute top-2 left-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs">
                         {product.custom_text}
                       </div>
                     )}
-                    <div className="absolute top-2 left-2 bg-primary bg-opacity-80 text-white px-2 py-1 rounded text-xs">
-                      FOTO
-                    </div>
                   </div>
 
                   <div className="p-4">
                     <h3 className="text-lg font-medium mb-2">{product.name}</h3>
-                    <p className="text-gray-600 text-sm mb-4">{product.description}</p>
+                    <p className="text-gray-600 text-sm mb-3">{product.description}</p>
+
+                    <div className="flex flex-wrap gap-2 mb-3 text-xs">
+                      {(((product as any).tieneVariantes) || (Array.isArray((product as any).variantes) && (product as any).variantes.length) || (Array.isArray((product as any).variants) && (product as any).variants.length)) && (
+                        <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-700">⚙ Com opções</span>
+                      )}
+                      {(((product as any).permiteTexto) || (product as any).allow_name) && (
+                        <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700">✏ Personalizável</span>
+                      )}
+                      {(((product as any).permiteFoto) || (product as any).allow_custom_image) && (
+                        <span className="px-2 py-1 rounded-full bg-green-100 text-green-700">🖼 Com foto</span>
+                      )}
+                      {((product as any).permiteAudio) && (
+                        <span className="px-2 py-1 rounded-full bg-purple-100 text-purple-700">🎤 Com áudio</span>
+                      )}
+                    </div>
+
                     <div className="flex items-center justify-between">
                       <span className="text-xl font-playfair text-primary">
                         {formatPrice(product.price)}
                       </span>
                       <button
-                        onClick={() => addStoreItemToGlobalCart(product.id)}
+                        onClick={() => { setSelectedProduct(product); setAddModalOpen(true); }}
                         className="bg-primary text-white p-2 rounded-full hover:bg-opacity-90"
                       >
                         <Plus size={20} />
@@ -445,6 +465,31 @@ const StorePage = () => {
           </>
         )}
 
+        <AddToCartModal
+          isOpen={addModalOpen}
+          onClose={() => setAddModalOpen(false)}
+          product={selectedProduct as any}
+          onAdd={({ id, name, priceNumber, image, variantName, customText, customImageDataUrl, customAudioDataUrl }) => {
+            const suffixParts: string[] = [];
+            if (variantName) suffixParts.push(`v:${variantName}`);
+            if (customText) suffixParts.push(`t:${customText}`);
+            if (customImageDataUrl) suffixParts.push('img:1');
+            if (customAudioDataUrl) suffixParts.push('aud:1');
+            const uniqueId = suffixParts.length ? `${id}|${suffixParts.join('|')}` : id;
+            const displayName = variantName ? `${name} — ${variantName}` : name;
+            addToMainCart({
+              id: uniqueId,
+              type: 'store',
+              name: displayName,
+              price: formatPrice(priceNumber),
+              duration: '',
+              image: image || ''
+            });
+            setIsCartOpen(true);
+          }}
+        />
+
+        <ImageLightbox isOpen={lightboxOpen} src={lightboxSrc} onClose={() => { setLightboxOpen(false); setLightboxSrc(null); }} />
 
       </div>
     </section>
