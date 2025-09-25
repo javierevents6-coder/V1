@@ -226,7 +226,7 @@ const StorePage = () => {
     <section className="pt-32 pb-16">
       <div className="container-custom">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="section-title">Tienda</h1>
+          <h1 className="section-title">Loja</h1>
           <div className="flex items-center gap-4" />
         </div>
 
